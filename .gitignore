@@ -1,31 +1,106 @@
-# Python
+# =============================================================================
+# PoisonedRAG-pro-release .gitignore
+#
+# The published artifact consists ONLY of:
+#   - pipeline scripts (gen_*.py, run.py, evaluate_beir.py, attack_main.py, ...)
+#   - src/ , tools/ , model_configs/ , requirements.txt
+#   - frozen outputs: results/pipeline_1000/{nq,hotpotqa}/ and
+#     beir_results/{nq,hotpotqa}-contriever.json
+#   - docs: README.md, ACCEPTANCE.md, CHANGELOG.md, CITATION.cff, LICENSE,
+#     sources.csv, SHA256SUMS
+# Everything below is local/generated/third-party content and must NOT ship.
+# =============================================================================
+
+# ------------------------------------------------------------------ Python --
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
 *.egg-info/
+*.egg
+build/
+dist/
+.eggs/
+
+# ------------------------------------------------------- Virtual environments --
 .venv/
 venv/
+env/
+ENV/
+
+# ---------------------------------------------------------- Tool/test caches --
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+.ipynb_checkpoints/
 
-# Resumable generation state (not part of the release artifacts)
-*.state.json
+# ----------------------------------------------------------- Editors / OS/IDE --
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
 
-# Local run artifacts
-/tmp/
-/logs/
+# --------------------------------------------------------------- Secrets/env --
+.env
+.env.*
+*.key
+*.pem
+secrets.*
+credentials*.json
 
-# Local caches, weights and datasets (downloaded separately, never committed)
+# --------------------------------------------- Datasets & model weights/caches --
+# Downloaded separately (prepare_dataset.py / Contriever / Llama-2); never commit.
 /datasets/
 /models/
+/data/
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.onnx
+*.gguf
+*.h5
+.huggingface/
+.cache/
+hub/
 *.pdf
 
-# Environment and secrets
-.env
-*.key
+# ------------------------------------- Runtime outputs (NOT the frozen panels) --
+# Intermediate pipeline stages and evaluation runs written by the scripts
+# (the frozen nq/hotpotqa artifacts live under results/pipeline_1000/ and
+#  beir_results/ and ARE part of the release).
+/results/qc/
+/results/qci/
+/results/adv_targeted_results/
+/results/attack_eval/
+/results/beir_results/
+/results-valid/
 
-# MS-MARCO is an optional extension and is not part of the released panels
+# Resumable generation state (huge; contains absolute paths / request ids).
+*.state.json
+
+# Logs and scratch space.
+/logs/
+*.log
+/tmp/
+
+# --------------------------------- Internal notes / files kept out of release --
+# Pre-release checklists, local tests and copyrighted source material.
+/tests/
+/操作指南.md
+/验收情况.md
+/doc/
+
+# -------------------------- Optional extensions excluded from released panels --
+# MS-MARCO is an optional extension and is NOT part of the released panels.
 /results/pipeline_1000/msmarco/
 /beir_results/msmarco-contriever.json
-
-# Internal working notes
-/操作指南.md
-/doc/
