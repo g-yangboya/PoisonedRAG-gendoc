@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Resumable generation state (not part of the release artifacts)
+*.state.json
+
+# Local run artifacts
+/tmp/
+/logs/
+
+# Local caches, weights and datasets (downloaded separately, never committed)
+/datasets/
+/models/
+*.pdf
+
+# Environment and secrets
+.env
+*.key
+
+# MS-MARCO is an optional extension and is not part of the released panels
+/results/pipeline_1000/msmarco/
+/beir_results/msmarco-contriever.json
+
+# Internal working notes
+/操作指南.md
+/doc/

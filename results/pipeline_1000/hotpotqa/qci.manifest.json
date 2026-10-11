@@ -1,0 +1,19 @@
+{
+  "stage": "incorrect",
+  "prompt_version": "qci_incorrect_v1",
+  "input_count": 1000,
+  "exported_count": 1000,
+  "counts": {
+    "pending": 0,
+    "complete": 1000,
+    "needs_review": 0,
+    "exhausted": 0
+  },
+  "unfinished_ids": [],
+  "request_count": 1053,
+  "usage": {
+    "prompt_tokens": 186952,
+    "completion_tokens": 171488
+  },
+  "signature": "28023f583a6089b0e4f746727341b133a67a5941f7fce08df3f795d32fdff825"
+}

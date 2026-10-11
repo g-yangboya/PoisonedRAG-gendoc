@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: >-
+  If you use the poisoned-document generator or the frozen data in this
+  repository, please cite the PoisonedRAG paper and this resource.
+title: >-
+  PoisonedRAG-pro: Poisoned-document generation for RAG knowledge-corruption
+  attacks
+version: 0.1.0
+date-released: "2026-10-11"
+license: MIT
+authors:
+  - name: Anonymous
+    # Author identity is withheld for double-blind review.
+references:
+  - type: article
+    title: >-
+      PoisonedRAG: Knowledge Corruption Attacks to Retrieval-Augmented
+      Generation of Large Language Models
+    authors:
+      - family-names: Zou
+        given-names: Wei
+      - family-names: Geng
+        given-names: Runpeng
+      - family-names: Wang
+        given-names: Binghui
+      - family-names: Jia
+        given-names: Jinyuan
+    booktitle: 34th USENIX Security Symposium (USENIX Security 25)
+    pages: 3827-3844
+    year: 2025
+    url: https://arxiv.org/abs/2402.07867

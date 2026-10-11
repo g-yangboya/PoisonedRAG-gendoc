@@ -1,0 +1,28 @@
+# PoisonedRAG-pro dependencies
+# Recommended interpreter: Python 3.10 (matches the upstream PoisonedRAG setup).
+#
+#   pip install -r requirements.txt
+#
+# Two independent usage paths:
+#   * Offline recomputation / acceptance -- needs the "offline core" block,
+#     plus local Contriever weights and (optionally) a local answering model.
+#   * API-based generation (run.py, gen_incorrect.py, gen_adv.py) -- additionally
+#     needs the "API" block and an API key in the environment.
+
+# --- Offline core (dataset preparation, retrieval, acceptance) ---
+numpy>=1.23,<2.0
+torch>=1.13
+transformers>=4.30
+sentence-transformers>=2.2
+beir>=1.0.1
+tqdm>=4.60
+
+# --- API-based generation ---
+openai>=1.0
+
+# --- Optional: local answering model (Llama-2 chat) ---
+accelerate>=0.20
+
+# --- Optional alternative backends kept from upstream (not used by default) ---
+# google-generativeai   # PaLM2 backend (src/models/PaLM2.py)
+# fschat                # Vicuna backend (src/models/Vicuna.py)
