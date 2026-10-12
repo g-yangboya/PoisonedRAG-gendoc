@@ -12,13 +12,14 @@ python gen_adv.py \
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import time
 from pathlib import Path
 from typing import Any
 
 from src.generation_utils import (
-    atomic_write_json, companion_paths, ensure_resumable,
+    atomic_write_json, atomic_write_text, companion_paths, ensure_resumable,
     is_fatal_api_error, load_config, public_config, response_public_metadata,
     normalized, short_error, stable_hash, validate_records,
 )
@@ -163,6 +164,7 @@ def query_with_retries(model, prompt: str, system_prompt: str, retries: int,
 
 def export_adv(state: dict[str, Any], records: dict[str, dict[str, str]], output: Path, manifest_path: Path) -> None:
     result: dict[str, dict[str, Any]] = {}
+    candidate_validation: list[dict[str, Any]] = []
     counts = {"pending": 0, "complete": 0, "needs_review": 0, "exhausted": 0}
     unfinished: list[str] = []
     word_counts: list[int] = []
@@ -188,9 +190,22 @@ def export_adv(state: dict[str, Any], records: dict[str, dict[str, str]], output
                 output_tokens += usage.get("completion_tokens", 0) or 0
         if item["status"] == "complete":
             result[qid] = dict(records[qid]) | {"adv_texts": bodies}
+            for index, position in enumerate(item["positions"], 1):
+                body = position["body"]
+                candidate_validation.append({
+                    "query_id": qid,
+                    "candidate_index": index,
+                    "body_sha256": hashlib.sha256(body.encode("utf-8")).hexdigest(),
+                    "validation_status": "validated" if position["behavior_validated"] else "fallback",
+                    "behavior_trials": position["behavior_trials"],
+                })
         else:
             unfinished.append(qid)
     atomic_write_json(output, result)
+    lines = (json.dumps(row, ensure_ascii=False, separators=(",", ":"))
+             for row in candidate_validation)
+    atomic_write_text(output.with_name("candidate_validation.jsonl"),
+                      "\n".join(lines) + ("\n" if candidate_validation else ""))
     distribution = None if not word_counts else {
         "min": min(word_counts), "max": max(word_counts),
         "mean": round(sum(word_counts) / len(word_counts), 2), "count": len(word_counts),

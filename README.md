@@ -43,7 +43,7 @@ python prepare_source_data.py --datasets nq,hotpotqa
 python run.py --datasets nq,hotpotqa --data_root ./datasets --output_root ./generated_resource
 ```
 
-`gen_correct.py` downloads the pinned FlashRAG source records on first use. By default `run.py` targets 1,000 accepted records and five candidates per query in `generated_resource/`. A fresh API regeneration should use a new output directory: the release has per-candidate status records but no resumable `*.state.json`, and the scripts intentionally reject an existing output without matching state. Re-execution is therefore a reconstruction path, not a promise of byte-identical output.
+`gen_correct.py` downloads the pinned FlashRAG source records on first use. By default `run.py` targets 1,000 accepted records and five candidates per query in `generated_resource/`; `gen_adv.py` also writes `candidate_validation.jsonl` beside `adv.json`. A fresh API regeneration should use a new output directory: the release has per-candidate status records but no resumable `*.state.json`, and the scripts intentionally reject an existing output without matching state. Re-execution is therefore a reconstruction path, not a promise of byte-identical output.
 
 ## Verify the frozen release
 

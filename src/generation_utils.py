@@ -63,6 +63,28 @@ def atomic_write_json(path: Path, value: Any) -> None:
             os.unlink(temporary)
 
 
+def atomic_write_text(path: Path, value: str) -> None:
+    """Atomically replace a UTF-8 text artifact beside resumable JSON state."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary = tempfile.mkstemp(prefix=path.name + ".", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
+            stream.write(value)
+            stream.flush()
+            os.fsync(stream.fileno())
+        for attempt in range(10):
+            try:
+                os.replace(temporary, path)
+                break
+            except PermissionError:
+                if attempt == 9:
+                    raise
+                time.sleep(min(0.05 * (2 ** attempt), 1.0))
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
 def stable_hash(value: Any) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 — 2026-10-12
+
+- Made the public passage-generation script export the same per-candidate validation schema as the frozen release; no frozen records changed.
+
 ## 0.3.0 — 2026-10-12
 
 - Released hash-linked generation-time validation status and trial count for each of the 10,000 frozen candidates, recovered from exact-match construction state.
