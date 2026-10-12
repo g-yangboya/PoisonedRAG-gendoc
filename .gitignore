@@ -1,13 +1,8 @@
 # =============================================================================
-# PoisonedRAG-pro-release .gitignore
+# Frozen poisoning resource .gitignore
 #
-# The published artifact consists ONLY of:
-#   - pipeline scripts (gen_*.py, run.py, evaluate_beir.py, attack_main.py, ...)
-#   - src/ , tools/ , model_configs/ , requirements.txt
-#   - frozen outputs: results/pipeline_1000/{nq,hotpotqa}/ and
-#     beir_results/{nq,hotpotqa}-contriever.json
-#   - docs: README.md, ACCEPTANCE.md, CHANGELOG.md, CITATION.cff, LICENSE,
-#     sources.csv, SHA256SUMS
+# The tracked release contains generation scripts, two frozen resource panels,
+# provenance files, and documentation. External datasets and local state stay out.
 # Everything below is local/generated/third-party content and must NOT ship.
 # =============================================================================
 
@@ -57,7 +52,7 @@ secrets.*
 credentials*.json
 
 # --------------------------------------------- Datasets & model weights/caches --
-# Downloaded separately (prepare_dataset.py / Contriever / Llama-2); never commit.
+# Downloaded separately (prepare_source_data.py); never commit.
 /datasets/
 /models/
 /data/
@@ -75,15 +70,14 @@ hub/
 *.pdf
 
 # ------------------------------------- Runtime outputs (NOT the frozen panels) --
-# Intermediate pipeline stages and evaluation runs written by the scripts
-# (the frozen nq/hotpotqa artifacts live under results/pipeline_1000/ and
-#  beir_results/ and ARE part of the release).
+# Intermediate pipeline stages written by the scripts.
 /results/qc/
 /results/qci/
 /results/adv_targeted_results/
 /results/attack_eval/
 /results/beir_results/
 /results-valid/
+/generated_resource/
 
 # Resumable generation state (huge; contains absolute paths / request ids).
 *.state.json
@@ -102,5 +96,4 @@ hub/
 
 # -------------------------- Optional extensions excluded from released panels --
 # MS-MARCO is an optional extension and is NOT part of the released panels.
-/results/pipeline_1000/msmarco/
-/beir_results/msmarco-contriever.json
+/resource/msmarco/

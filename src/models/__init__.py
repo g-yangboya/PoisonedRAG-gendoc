@@ -12,21 +12,9 @@ def create_model(config_path):
     config = load_json(config_path)
 
     provider = config["model_info"]["provider"].lower()
-    if provider == 'palm2':
-        from .PaLM2 import PaLM2
-        model = PaLM2(config)
-    elif provider == 'vicuna':
-        from .Vicuna import Vicuna
-        model = Vicuna(config)
-    elif provider == 'gpt':
+    if provider == 'gpt':
         from .GPT import GPT
         model = GPT(config)
-    elif provider == 'local_llama':
-        from .local_llama import LocalLlama
-        model = LocalLlama(config_path)
-    elif provider == 'llama':
-        from .Llama import Llama
-        model = Llama(config)
     else:
         raise ValueError(f"ERROR: Unknown provider {provider}")
     return model

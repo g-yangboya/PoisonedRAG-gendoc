@@ -11,9 +11,9 @@
 
 最小可运行：
 python gen_incorrect.py \
-  --input results/qc/nq/qc.json \
-  --output results/qci/nq/qci.json \
-  --model_config_path model_configs/gpt5_mini_incorrect_config.json
+  --input generated_resource/nq/qc.json \
+  --output generated_resource/nq/qci.json \
+  --model_config_path model_configs/gpt-5-mini_incorrect_config.json
 """
 from __future__ import annotations
 

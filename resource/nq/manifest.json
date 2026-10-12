@@ -1,0 +1,65 @@
+{
+  "dataset": "nq",
+  "requested_beir_split": "test",
+  "actual_beir_split": "test",
+  "query_list_sha256": "bbce9ee807100f2fc0af926076329aff5c8a5902564511bdc53e2fc4532f461f",
+  "flashrag": {
+    "repo": "RUC-NLPIR/FlashRAG_datasets",
+    "commit": "bcafb8dd07d453be3cbeeeb3f78be1841bddf92c",
+    "files": [
+      {
+        "relative_path": "nq/train.jsonl",
+        "path": "flashrag/bcafb8dd07d453be3cbeeeb3f78be1841bddf92c/nq/train.jsonl",
+        "sha256": "572685d3f384d9c37479b1fb14232984c85ff13b58923c0c9442232bd5d5647b"
+      },
+      {
+        "relative_path": "nq/dev.jsonl",
+        "path": "flashrag/bcafb8dd07d453be3cbeeeb3f78be1841bddf92c/nq/dev.jsonl",
+        "sha256": "10d5ee25e813f3e2092247a5d2797793dd47ef5853959989cb34bf80a110d607"
+      },
+      {
+        "relative_path": "nq/test.jsonl",
+        "path": "flashrag/bcafb8dd07d453be3cbeeeb3f78be1841bddf92c/nq/test.jsonl",
+        "sha256": "843bebb083064abb6eb23751f2c8c187e5c448c23900b42ca92f91502a9b7488"
+      }
+    ]
+  },
+  "sampling": {
+    "target": 1000,
+    "initial_batch": 1500,
+    "refill_batch": 500,
+    "seed": 100
+  },
+  "rule_version": "qc-v1.2-selection-only",
+  "selection_mode": "matched",
+  "answer_selection_policy": "single_answer_only",
+  "answer_index": {
+    "path": "flashrag/bcafb8dd07d453be3cbeeeb3f78be1841bddf92c/indexes/nq.sqlite3",
+    "schema_version": 2,
+    "signature": "00f8f4892808459c9dec6ed928a3f423ed3ba7ccfa70c6dcd5635a3a1500f8ce",
+    "record_count": 91535,
+    "valid_answer_record_count": 91535,
+    "multiple_answer_record_count": 10159,
+    "empty_answer_record_count": 0,
+    "multiple_answer_share_of_all_records": 0.110985,
+    "multiple_answer_share_of_valid_answer_records": 0.110985,
+    "invalid_count": 0,
+    "reused": true
+  },
+  "filtering_statistics": {
+    "multiple_answer_filtered": 792,
+    "multiple_answer_share_of_processed": 0.285817,
+    "multiple_answer_share_of_answer_bearing_matches": 0.441964
+  },
+  "counts": {
+    "batch_candidates_taken": 3000,
+    "actually_processed": 2771,
+    "unmatched": 979,
+    "matched_with_single_answer": 1000,
+    "matched_single_answer": 1000,
+    "multiple_answers": 792,
+    "accepted": 1000,
+    "query_pool": 3452
+  },
+  "target_reached": true
+}

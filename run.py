@@ -50,8 +50,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--output_root", "--output-root", dest="output_root", type=Path,
-        default=PROJECT_DIR / "results" / "pipeline_1000",
-        help="Output root for qc/qci/adv files (default: <repo>/results/pipeline_1000).",
+        default=PROJECT_DIR / "generated_resource",
+        help="Output root for qc/qci/adv files (default: <repo>/generated_resource).",
     )
     parser.add_argument(
         "--log_dir", "--log-dir", dest="log_dir", type=Path,

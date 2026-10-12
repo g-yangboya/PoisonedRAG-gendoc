@@ -1,6 +1,6 @@
 """Rebuild the release tables: ``sources.csv`` and ``SHA256SUMS``.
 
-Reads the frozen artifacts under ``results/pipeline_1000`` and ``beir_results``
+Reads the frozen artifacts under ``resource``
 and writes two repository-root files:
 
 * ``sources.csv``  -- per-query source mapping and the sha256 of each body.
@@ -19,16 +19,13 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-RESULTS = ROOT / "results" / "pipeline_1000"
+RESULTS = ROOT / "resource"
 DATASETS = ("nq", "hotpotqa")
 
-EXCLUDE_TOP_DIRS = {"tmp", "logs", "datasets", "models", "doc"}
+EXCLUDE_TOP_DIRS = {"tmp", "logs", "datasets", "models", "doc", "results", "beir_results", "generated_resource", ".venv", "venv", "env"}
 EXCLUDE_ANY_DIRS = {".git", "__pycache__", ".pytest_cache"}
 EXCLUDE_NAMES = {"SHA256SUMS", "操作指南.md", "验收情况.md"}
-EXCLUDE_PREFIXES = (
-    "results/pipeline_1000/msmarco/",
-    "beir_results/msmarco-contriever.json",
-)
+EXCLUDE_PREFIXES = ("resource/msmarco/",)
 EXCLUDE_SUFFIXES = (".state.json", ".pyc")
 
 
@@ -92,7 +89,7 @@ def build_sources() -> int:
                 "adv_5_sha256": hashes[4],
             })
     with (ROOT / "sources.csv").open("w", encoding="utf-8", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=columns)
+        writer = csv.DictWriter(stream, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     return len(rows)
@@ -114,7 +111,7 @@ def build_hashes() -> int:
         if relative.endswith(EXCLUDE_SUFFIXES):
             continue
         lines.append(f"{sha256_file(path)}  {relative}")
-    (ROOT / "SHA256SUMS").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (ROOT / "SHA256SUMS").write_bytes(("\n".join(lines) + "\n").encode("utf-8"))
     return len(lines)
 
 

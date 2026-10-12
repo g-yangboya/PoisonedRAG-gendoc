@@ -1,10 +1,10 @@
-"""Build traceable question + correct-answer (Q+C) sets for PoisonedRAG.
+"""Build traceable question + reference-answer (Q+C) resource records.
 
 The implementation deliberately samples the complete BEIR query pool before doing
 answer lookup.  It does not generate answers: every exported answer is either an
 existing FlashRAG answer or an exact, contiguous substring of one.
 
-这段代码用于为 PoisonedRAG 构建可追踪的 Question + Correct-answer(Q+C) 数据集。
+这段代码用于构建可追踪的 Question + Correct-answer(Q+C) 资源记录。
 它从 BEIR 查询池中采样问题，再去 FlashRAG 数据集中查找已有答案，只保留“能匹配到且只有一个有效参考答案”的问题。
 代码不生成新答案，答案直接来自 FlashRAG 的 golden_answers。
 
@@ -16,7 +16,7 @@ existing FlashRAG answer or an exact, contiguous substring of one.
     可选，默认值如下: 
     --split test (msmarco 强制为 train)
     --cache-dir datasets/flashrag
-    --output-dir results/qc/{dataset}
+    --output-dir generated_resource/{dataset}
     --target 1000
     --initial-batch 1500
     --refill-batch 500
@@ -629,10 +629,9 @@ def run_dataset(
 
 def load_beir_queries(dataset: str, split: str,
                       datasets_dir: Path | None = None) -> tuple[Mapping[str, str], str]:
-    # Import lazily: importing src.utils also imports heavyweight retrieval packages.
-    from src.utils import load_beir_datasets
+    from src.source_queries import load_beir_queries as load_source_queries
 
-    _corpus, queries, _qrels = load_beir_datasets(dataset, split, datasets_dir)
+    queries = load_source_queries(dataset, split, datasets_dir)
     return queries, "train" if dataset == "msmarco" else split
 
 
@@ -672,7 +671,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     if min(args.target, args.initial_batch, args.refill_batch) <= 0:
         raise QCError("target and batch sizes must be positive")
-    output_dir = args.output_dir or Path("results/qc") / args.dataset
+    output_dir = args.output_dir or Path("generated_resource") / args.dataset
     token = os.environ.get("HF_TOKEN")
     commit, files = prepare_flashrag_files(args.dataset, args.revision, args.cache_dir, token=token)
     index = prepare_sqlite_answer_index(

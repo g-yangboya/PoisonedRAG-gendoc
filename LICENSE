@@ -1,11 +1,11 @@
 MIT License
 
-Copyright (c) 2026 PoisonedRAG-pro contributors
+Copyright (c) 2024 Runpeng Geng
+Copyright (c) 2026 Frozen Poisoning Resource contributors
 
 This project builds on PoisonedRAG (https://github.com/sleeepeer/PoisonedRAG),
 which is distributed under the MIT License. Portions of the source code are
-derived from that project; its copyright notice is retained in the upstream
-repository.
+derived from that project; its copyright notice is retained above.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -1,136 +1,61 @@
-# PoisonedRAG-pro
+# A Reusable Frozen Poisoning Resource
 
-Poisoned-document generation for knowledge-corruption attacks against
-retrieval-augmented generation (RAG).
+This repository releases the frozen poisoning resource used in the paper and the pipeline used to construct it. It does not contain the paper's defense evaluation or analysis code.
 
-This repository builds question / correct-answer / incorrect-answer (Q/C/I)
-records from BEIR and FlashRAG, then generates adversarial documents
-("poisoned documents") that steer an answering model toward a target incorrect
-answer. It is a derivative of
-[PoisonedRAG](https://github.com/sleeepeer/PoisonedRAG) (MIT License).
+## Released resource
 
-## Scope
+`resource/nq/` and `resource/hotpotqa/` each contain 1,000 selected query records and five **ordered** malicious passage bodies per query: 2,000 queries and 10,000 bodies in total. Each query has a reference answer and a fixed attacker target. The candidates were generated independently of the evaluated defenses and were not regenerated in response to their outputs.
 
-This repository **only produces poisoned documents**. It ships:
+The files are shared attack inputs for paired comparisons, not a benchmark leaderboard or a guarantee that a candidate succeeds against any particular system. The NQ panel is not a simple superset of the public PoisonedRAG 100-query artifact: only 42 questions overlap. Absolute results from the two panels should not be compared as if only sample size changed.
 
-- the generation pipeline: `gen_correct.py` -> `gen_incorrect.py` -> `gen_adv.py`,
-  orchestrated by `run.py`;
-- frozen poisoned documents for **NQ** and **HotpotQA**
-  (1,000 queries x 5 adversarial bodies per query) under
-  `results/pipeline_1000/`;
-- frozen Contriever retrieval results under `beir_results/`;
-- a single-configuration acceptance check that reuses `attack_main.py`
-  (see `ACCEPTANCE.md`).
-
-Out of scope (maintained in a companion artifact, not here): the paper's
-normalized scorer `paper_normalized_final`, the full-grid offline
-recomputation, the figures, and the perturbation / scoring audits.
-MS-MARCO is an optional extension and is **not** part of the released panels.
-
-## Pipeline
+## Directory layout and records
 
 ```text
-BEIR queries + FlashRAG reference answers
-        |
-        v  gen_correct.py     -> qc.json   (Q + Correct), audit.jsonl, manifest.json
-        v  gen_incorrect.py   -> qci.json  (Q + Correct + Incorrect)
-        v  gen_adv.py         -> adv.json  (adv_texts: 5 bodies per query)
-        v  run.py             -> chains the three stages
+resource/{nq,hotpotqa}/
+  qc.json             query ID -> id, question, correct answer
+  qci.json            qc fields + incorrect answer (fixed attacker target)
+  adv.json            qci fields + adv_texts (array of five ordered bodies)
+  audit.jsonl         query-selection decisions and accepted source mappings
+  manifest.json       source revision, selection policy, counts, index metadata
+  qci.manifest.json   target-generation stage, prompt version, counts, usage
+  adv.manifest.json   passage-generation stage, validation totals, usage
+sources.csv            one row per query with source mapping and body hashes
+SHA256SUMS             SHA-256 digest of every released file except itself
 ```
 
-`gen_adv.py` validates each candidate body: the body alone is used as the
-context to answer the original question, and it is regenerated until the proxy
-answer matches the target incorrect answer (bounded number of trials, with an
-explicit fallback recorded in the manifest).
+The outer JSON keys are stable query IDs. Within each `adv_texts` array, index 0 is candidate 1; budget `m` uses `adv_texts[:m]` for `m=0,...,5`. Do not sort these arrays. `sources.csv` records the hash of each body at positions 1–5. Candidate order is therefore independently checkable. The released `adv.manifest.json` records dataset-level validated/fallback totals; it does not identify individual fallback bodies.
 
-### Scripts
+For NQ, generation-time checks validated 4,777 bodies and retained 223 fallback bodies. For HotpotQA, the counts are 4,770 and 230. Exhausting the bounded proxy-validation trials retained a nonempty final body. These generation-time checks do not establish semantic quality or success against the evaluated generators and defenses.
 
-| Script | Role | Key options |
-|---|---|---|
-| `gen_correct.py` | Sample queries and match a single FlashRAG reference answer | `--dataset`, `--revision`, `--target`, `--seed` |
-| `gen_incorrect.py` | Generate a target incorrect answer per query | `--input`, `--output`, `--model_config_path` |
-| `gen_adv.py` | Generate and validate adversarial bodies | `--qci_input_path`, `--adv_config_path`, `--adv_output_path`, `--adv_per_query` |
-| `run.py` | Run the full pipeline for one or more datasets | `--datasets`, `--data_root`, `--output_root` |
-| `evaluate_beir.py` | Compute BEIR retrieval results for a dataset | `--dataset`, `--model_code`, `--split` |
-| `attack_main.py` | Acceptance evaluation (`release_raw_substring_asr`) | see `ACCEPTANCE.md` |
+The query-selection `manifest.json` pins the FlashRAG revision and records the BEIR split, sampling seed and batches, filtering counts, selection policy, and answer-index signature. `audit.jsonl` supplies per-query FlashRAG source record, split, and line for accepted entries. The two stage manifests identify prompt versions and input signatures, request and token totals, unfinished IDs, and aggregate validation outcomes. Generation scripts contain the prompts and model settings. API-side model snapshots and stochastic responses can prevent byte-identical regeneration.
 
-CLI options accept both `--snake_case` and `--kebab-case`.
+## Constructing the resource
 
-## Data layout
-
-```text
-results/pipeline_1000/<dataset>/
-    qc.json             Q + Correct
-    qci.json            Q + Correct + Incorrect
-    adv.json            + 5 adversarial bodies per query  (the release artifact)
-    audit.jsonl         per-query source mapping (BEIR split + FlashRAG record id/line)
-    manifest.json       dataset / FlashRAG revision / sampling / index metadata
-    qci.manifest.json   incorrect-stage manifest
-    adv.manifest.json   adv-stage manifest
-beir_results/<dataset>-contriever.json   frozen retrieval results
-sources.csv                              flat per-query source + body hashes
-SHA256SUMS                               sha256 of every published file
-```
-
-## Reproduce
-
-Two independent paths.
-
-### 1. Offline acceptance (no API calls)
-
-Needs BEIR datasets (`prepare_dataset.py`), the shipped `beir_results/`, local
-Contriever weights, and local Llama-2-7b-chat weights. Set `local_path` in
-`model_configs/llama-2-7b-chat_eval_config.json`, then:
+The three stages are **query/reference selection** (`gen_correct.py`), **attacker-target generation** (`gen_incorrect.py`), and **poisoned-passage generation plus proxy validation** (`gen_adv.py`). `run.py` orchestrates them. These script names are retained for compatibility; “incorrect” means a fixed answer incompatible with the reference, not a random label. The implementation uses an OpenAI-compatible API backend and reads its key from the environment variable named by `api_key_env` in the generation configs.
 
 ```bash
-python attack_main.py \
-  --model_config_path model_configs/llama-2-7b-chat_eval_config.json \
-  --all_adv_texts_path results/pipeline_1000/nq/adv.json \
-  --eval_dataset nq --split test \
-  --beir_datasets_dir ./datasets \
-  --beir_results_dir ./beir_results \
-  --retriever_model_path /path/to/contriever \
-  --top_k 5 --adv_per_query 5 \
-  --M 10 --repeat_times 100 \
-  --name nq-llama2-acceptance
+python -m venv .venv
+python -m pip install -r requirements.txt
+python prepare_source_data.py --datasets nq,hotpotqa
+# Set OPENAI_API_KEY in your environment before this step.
+python run.py --datasets nq,hotpotqa --data_root ./datasets --output_root ./generated_resource
 ```
 
-Expected numbers are in `ACCEPTANCE.md`.
+`gen_correct.py` downloads the pinned FlashRAG source records on first use. By default `run.py` targets 1,000 accepted records and five candidates per query in `generated_resource/`. A fresh API regeneration should use a new output directory: the released JSON has no resumable `*.state.json`, and the scripts intentionally reject an existing output without matching state. Re-execution is therefore a reconstruction path, not a promise of byte-identical output.
 
-### 2. API-based generation (needs an API key)
+## Verify the frozen release
 
 ```bash
-export OPENAI_API_KEY="your-api-key"        # name must match `api_key_env` in the config
-python run.py --datasets nq,hotpotqa --data_root ./datasets
+python tools/verify_resource.py
+python tools/verify_checksums.py
 ```
 
-All input/output paths default to locations relative to the repository root;
-override them with the CLI options (Windows and Linux use the same flags).
+The first command checks IDs, field continuity, 1,000 × 5 cardinality for each panel, and body hashes in `sources.csv`. The second checks `SHA256SUMS`. `tools/build_release_artifacts.py` rebuilds `sources.csv` and then `SHA256SUMS` after an intentional release change; do not run it during verification.
 
-## Environment
+## Intended use and limits
 
-- Python 3.10 (recommended).
-- `pip install -r requirements.txt` — see the file for the offline / API split
-  and optional backends.
-- API generation reads the key from the environment variable named by
-  `api_key_env` in the model config (default `OPENAI_API_KEY`).
+Use these frozen candidates for controlled RAG poisoning and defense research with shared inputs. The release does not include retrieval outputs, paper scoring, figures, or analysis code. Different generators, retrievers, prompts, and scoring rules define different evaluation conditions and clean gain sets. These candidates were not optimized against evaluated defenses, so the resource does not support adaptive-attack robustness claims or a system-independent leaderboard.
 
-## Metric naming
+## Provenance, citation, and licenses
 
-`attack_main.py` reports `release_raw_substring_asr`: a hit is counted when the
-target incorrect answer appears as a substring of the model output. `Precision`,
-`Recall` and `F1` are poisoned-document retrieval coverage, not BEIR relevance.
-The paper's normalized scorer is `paper_normalized_final` and lives in the
-companion artifact.
-
-## Citation
-
-If you use this repository, please cite the PoisonedRAG paper (see
-`CITATION.cff`) and this resource.
-
-## License
-
-MIT License — see `LICENSE`. Portions of the code derive from PoisonedRAG,
-which is distributed under the MIT License. BEIR, FlashRAG, Contriever and the
-Llama-2 weights are external resources with their own licenses; download them
-from their official sources under the applicable terms.
+The code is a derivative of [PoisonedRAG](https://github.com/sleeepeer/PoisonedRAG) (MIT). Cite both that work and this resource; see `CITATION.cff`. The `LICENSE` file applies to this repository's original code and any MIT-licensed derived code. It does **not** relicense upstream question or reference-answer text. Natural Questions is published under [CC BY-SA 3.0](https://ai.google.com/research/NaturalQuestions/download); [HotpotQA](https://hotpotqa.github.io/) and the [FlashRAG dataset](https://huggingface.co/datasets/RUC-NLPIR/FlashRAG_datasets) state CC BY-SA 4.0. The [BEIR dataset notice](https://github.com/beir-cellar/beir) directs users to source-dataset terms. Users remain responsible for the applicable upstream terms.

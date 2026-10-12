@@ -1,9 +1,9 @@
 """Generate independent adversarial documents from fixed Q/C/I records.
 
 python gen_adv.py \
-  --qci_input_path results/qci/nq/qci.json \
-  --adv_config_path model_configs/gpt5_mini_adv_config.json \
-  --adv_output_path results/adv_targeted_results/nq.json \
+  --qci_input_path generated_resource/nq/qci.json \
+  --adv_config_path model_configs/gpt-5-mini_adv_config.json \
+  --adv_output_path generated_resource/nq/adv.json \
   # 可选
   --adv_per_query 5 \
   --response_retries 2
