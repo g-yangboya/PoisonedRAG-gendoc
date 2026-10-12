@@ -19,12 +19,13 @@ resource/{nq,hotpotqa}/
   manifest.json       source revision, selection policy, counts, index metadata
   qci.manifest.json   target-generation stage, prompt version, counts, usage
   adv.manifest.json   passage-generation stage, validation totals, usage
+  candidate_validation.jsonl  one status row per ordered candidate
 sources.csv            one row per query with source mapping and body hashes
 SHA256SUMS             SHA-256 digest of every released file except itself
 DATA_ATTRIBUTION.md    field-level source attribution and change notice
 ```
 
-The outer JSON keys are stable query IDs. Within each `adv_texts` array, index 0 is candidate 1; budget `m` uses `adv_texts[:m]` for `m=0,...,5`. Do not sort these arrays. `sources.csv` records the hash of each body at positions 1–5. Candidate order is therefore independently checkable. The released `adv.manifest.json` records dataset-level validated/fallback totals; it does not identify individual fallback bodies.
+The outer JSON keys are stable query IDs. Within each `adv_texts` array, index 0 is candidate 1; budget `m` uses `adv_texts[:m]` for `m=0,...,5`. Do not sort these arrays. `sources.csv` records the hash of each body at positions 1–5. Candidate order is therefore independently checkable. Each `candidate_validation.jsonl` row gives `query_id`, one-based `candidate_index`, `body_sha256`, `validation_status` (`validated` or `fallback`), and `behavior_trials`. The body hash binds the status to the exact published candidate. The aggregate counts remain in `adv.manifest.json`; full resumable state and proxy responses are not released.
 
 For NQ, generation-time checks validated 4,777 bodies and retained 223 fallback bodies. For HotpotQA, the counts are 4,770 and 230. Exhausting the bounded proxy-validation trials retained a nonempty final body. These generation-time checks do not establish semantic quality or success against the evaluated generators and defenses.
 
@@ -42,7 +43,7 @@ python prepare_source_data.py --datasets nq,hotpotqa
 python run.py --datasets nq,hotpotqa --data_root ./datasets --output_root ./generated_resource
 ```
 
-`gen_correct.py` downloads the pinned FlashRAG source records on first use. By default `run.py` targets 1,000 accepted records and five candidates per query in `generated_resource/`. A fresh API regeneration should use a new output directory: the released JSON has no resumable `*.state.json`, and the scripts intentionally reject an existing output without matching state. Re-execution is therefore a reconstruction path, not a promise of byte-identical output.
+`gen_correct.py` downloads the pinned FlashRAG source records on first use. By default `run.py` targets 1,000 accepted records and five candidates per query in `generated_resource/`. A fresh API regeneration should use a new output directory: the release has per-candidate status records but no resumable `*.state.json`, and the scripts intentionally reject an existing output without matching state. Re-execution is therefore a reconstruction path, not a promise of byte-identical output.
 
 ## Verify the frozen release
 
@@ -51,7 +52,7 @@ python tools/verify_resource.py
 python tools/verify_checksums.py
 ```
 
-The first command checks IDs, field continuity, 1,000 × 5 cardinality for each panel, and body hashes in `sources.csv`. The second checks `SHA256SUMS`. `tools/build_release_artifacts.py` rebuilds `sources.csv` and then `SHA256SUMS` after an intentional release change; do not run it during verification.
+The first command checks IDs, field continuity, 1,000 × 5 cardinality for each panel, body hashes in `sources.csv`, and per-candidate validation status/counts/trials against the manifests. The second checks `SHA256SUMS`. `tools/build_release_artifacts.py` rebuilds `sources.csv` and then `SHA256SUMS` after an intentional release change; do not run it during verification.
 
 ## Intended use and limits
 

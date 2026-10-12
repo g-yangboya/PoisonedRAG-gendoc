@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0 — 2026-10-12
+
+- Released hash-linked generation-time validation status and trial count for each of the 10,000 frozen candidates, recovered from exact-match construction state.
+- Extended resource verification to check every status row against its published body and the aggregate manifests. The frozen query, target, and passage texts are unchanged.
+
 ## 0.2.1 — 2026-10-12
 
 - Added field-level attribution, source-license links, and a change notice for redistributed question and reference-answer text; frozen data files are unchanged.

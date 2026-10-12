@@ -38,6 +38,12 @@ def main():
         assert body_manifest["exported_count"] == len(ids)
         assert body_manifest["adv_per_query"] == 5
         assert body_manifest["behavior_validated_bodies"] + body_manifest["behavior_fallback_bodies"] == 5000
+        with (directory / "candidate_validation.jsonl").open(encoding="utf-8") as stream:
+            validation_rows = [json.loads(line) for line in stream if line.strip()]
+        assert len(validation_rows) == 5000, (dataset, len(validation_rows))
+        validation_counts = {"validated": 0, "fallback": 0}
+        validation_trials = 0
+        validation_position = 0
         for qid in ids:
             first, second, final = qc[qid], qci[qid], adv[qid]
             assert first["id"] == second["id"] == final["id"] == qid
@@ -59,7 +65,25 @@ def main():
                 assert isinstance(body, str) and body.strip()
                 digest = hashlib.sha256(body.encode("utf-8")).hexdigest()
                 assert row[f"adv_{position}_sha256"] == digest, (dataset, qid, position)
+                validation = validation_rows[validation_position]
+                validation_position += 1
+                assert set(validation) == {
+                    "query_id", "candidate_index", "body_sha256",
+                    "validation_status", "behavior_trials",
+                }
+                assert validation["query_id"] == qid
+                assert validation["candidate_index"] == position
+                assert validation["body_sha256"] == digest
+                status = validation["validation_status"]
+                assert status in validation_counts, (dataset, qid, position, status)
+                trials = validation["behavior_trials"]
+                assert type(trials) is int and 1 <= trials <= body_manifest["max_behavior_trials"]
+                validation_counts[status] += 1
+                validation_trials += trials
             seen.add((dataset, qid))
+        assert validation_counts["validated"] == body_manifest["behavior_validated_bodies"]
+        assert validation_counts["fallback"] == body_manifest["behavior_fallback_bodies"]
+        assert validation_trials == body_manifest["behavior_trials"]
         print(f"{dataset}: {len(ids)} queries, {len(ids) * 5} ordered bodies")
     assert set(source_rows) == seen, "sources.csv contains unexpected IDs"
 
