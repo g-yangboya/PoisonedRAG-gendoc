@@ -27,6 +27,18 @@ DATA_ATTRIBUTION.md    field-level source attribution and change notice
 
 The outer JSON keys are stable query IDs. Within each `adv_texts` array, index 0 is candidate 1; budget `m` uses `adv_texts[:m]` for `m=0,...,5`. Do not sort these arrays. `sources.csv` records the hash of each body at positions 1–5. Candidate order is therefore independently checkable. Each `candidate_validation.jsonl` row gives `query_id`, one-based `candidate_index`, `body_sha256`, `validation_status` (`validated` or `fallback`), and `behavior_trials`. The body hash binds the status to the exact published candidate. The aggregate counts remain in `adv.manifest.json`; full resumable state and proxy responses are not released.
 
+## Minimal local example
+
+The frozen resource can be inspected with Python's standard library, without installing the generation dependencies or calling an API. From the repository root, run:
+
+```bash
+python -c "import json; from pathlib import Path; data=json.loads(Path('resource/nq/adv.json').read_text(encoding='utf-8')); qid, record=next(iter(data.items())); budget=2; print('query ID:', qid); print('question:', record['question']); print('reference:', record['correct answer']); print('target:', record['incorrect answer']); print('selected candidate count:', len(record['adv_texts'][:budget]))"
+python tools/verify_resource.py
+python tools/verify_checksums.py
+```
+
+For a fixed query ID, use `data[qid]`. Replace `nq` with `hotpotqa` to inspect the second panel. The slice `record['adv_texts'][:budget]` selects the ordered passages for budget `budget`; it does not run retrieval or generation. The two verification commands check the published resource and file hashes.
+
 For NQ, generation-time checks validated 4,777 bodies and retained 223 fallback bodies. For HotpotQA, the counts are 4,770 and 230. Exhausting the bounded proxy-validation trials retained a nonempty final body. These generation-time checks do not establish semantic quality or success against the evaluated generators and defenses.
 
 The query-selection `manifest.json` pins the FlashRAG revision and records the BEIR split, sampling seed and batches, filtering counts, selection policy, and answer-index signature. `audit.jsonl` supplies per-query FlashRAG source record, split, and line for accepted entries. The two stage manifests identify prompt versions and input signatures, request and token totals, unfinished IDs, and aggregate validation outcomes. Generation scripts contain the prompts and model settings. API-side model snapshots and stochastic responses can prevent byte-identical regeneration.
@@ -61,3 +73,7 @@ Use these frozen candidates for controlled RAG poisoning and defense research wi
 ## Provenance, citation, and licenses
 
 The code is a derivative of [PoisonedRAG](https://github.com/sleeepeer/PoisonedRAG) (MIT). Cite both that work and this resource; see `CITATION.cff`. The `LICENSE` file applies to this repository's original code and any MIT-licensed derived code. It does **not** relicense upstream question or reference-answer text. [DATA_ATTRIBUTION.md](DATA_ATTRIBUTION.md) maps released fields to Natural Questions, HotpotQA, and FlashRAG, names their source licenses, and describes the selection and transformation of those fields. Retain those attributions and observe the applicable upstream terms when reusing the data.
+
+## Repository development
+
+We will continue refining the repository structure, documentation, and reproducibility checks. The frozen candidate order and published resource files remain identified by their checksums; any future resource revision will be documented separately.
