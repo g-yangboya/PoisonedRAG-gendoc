@@ -21,6 +21,7 @@ resource/{nq,hotpotqa}/
   adv.manifest.json   passage-generation stage, validation totals, usage
 sources.csv            one row per query with source mapping and body hashes
 SHA256SUMS             SHA-256 digest of every released file except itself
+DATA_ATTRIBUTION.md    field-level source attribution and change notice
 ```
 
 The outer JSON keys are stable query IDs. Within each `adv_texts` array, index 0 is candidate 1; budget `m` uses `adv_texts[:m]` for `m=0,...,5`. Do not sort these arrays. `sources.csv` records the hash of each body at positions 1–5. Candidate order is therefore independently checkable. The released `adv.manifest.json` records dataset-level validated/fallback totals; it does not identify individual fallback bodies.
@@ -58,4 +59,4 @@ Use these frozen candidates for controlled RAG poisoning and defense research wi
 
 ## Provenance, citation, and licenses
 
-The code is a derivative of [PoisonedRAG](https://github.com/sleeepeer/PoisonedRAG) (MIT). Cite both that work and this resource; see `CITATION.cff`. The `LICENSE` file applies to this repository's original code and any MIT-licensed derived code. It does **not** relicense upstream question or reference-answer text. Natural Questions is published under [CC BY-SA 3.0](https://ai.google.com/research/NaturalQuestions/download); [HotpotQA](https://hotpotqa.github.io/) and the [FlashRAG dataset](https://huggingface.co/datasets/RUC-NLPIR/FlashRAG_datasets) state CC BY-SA 4.0. The [BEIR dataset notice](https://github.com/beir-cellar/beir) directs users to source-dataset terms. Users remain responsible for the applicable upstream terms.
+The code is a derivative of [PoisonedRAG](https://github.com/sleeepeer/PoisonedRAG) (MIT). Cite both that work and this resource; see `CITATION.cff`. The `LICENSE` file applies to this repository's original code and any MIT-licensed derived code. It does **not** relicense upstream question or reference-answer text. [DATA_ATTRIBUTION.md](DATA_ATTRIBUTION.md) maps released fields to Natural Questions, HotpotQA, and FlashRAG, names their source licenses, and describes the selection and transformation of those fields. Retain those attributions and observe the applicable upstream terms when reusing the data.

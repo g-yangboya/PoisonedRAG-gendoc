@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 — 2026-10-12
+
+- Added field-level attribution, source-license links, and a change notice for redistributed question and reference-answer text; frozen data files are unchanged.
+
 ## 0.2.0 — 2026-10-12
 
 - Scoped the release to frozen NQ and HotpotQA poisoning inputs and their construction pipeline.
